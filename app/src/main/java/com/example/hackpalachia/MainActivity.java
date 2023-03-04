@@ -3,8 +3,10 @@ package com.example.hackpalachia;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
-import android.view.View;
-import android.widget.TextView;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
+
+import java.util.ArrayList;
 
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
@@ -14,10 +16,12 @@ import io.realm.annotations.Required;
 
 public class MainActivity extends AppCompatActivity {
 
+    ListView listView;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
         Realm.init(this); // context, usually an Activity or Application
         String realmName = "My Project";
         RealmConfiguration config = new RealmConfiguration.Builder().name(realmName).build();
@@ -27,10 +31,20 @@ public class MainActivity extends AppCompatActivity {
             transactionRealm.insert(Task);
         });*/
 
+      }
+
+        listView = findViewById(R.id.listView);
+        ArrayList<String> arrayList = new ArrayList<>();
+
+        arrayList.add("Luke");
+        arrayList.add("Matthew");
+        arrayList.add("Narayan");
+        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(this,android.R.layout.simple_list_item_1,arrayList);
+        listView.setAdapter(arrayAdapter);
     }
 
-    public void onBtnClick (View view){
-        TextView txtHello = findViewById(R.id.textHello);
-        txtHello.setText("Hello");
-    }
+    /*protected void loadList(){
+        ArrayAdapter arrayAdapter = new ArrayAdapter(this,android.R.layout.simple_list_item_1,arrayList);
+        listView.setAdapter(arrayAdapter);
+    }*/
 }
