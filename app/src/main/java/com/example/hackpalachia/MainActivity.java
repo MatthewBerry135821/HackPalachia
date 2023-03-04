@@ -31,8 +31,6 @@ public class MainActivity extends AppCompatActivity {
             transactionRealm.insert(Task);
         });*/
 
-      }
-
         listView = findViewById(R.id.listView);
         ArrayList<String> arrayList = new ArrayList<>();
 
