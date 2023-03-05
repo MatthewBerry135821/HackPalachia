@@ -7,18 +7,26 @@
     android:orientation="vertical"
     tools:context=".MainActivity">
 
+    <TextView
+        android:id="@+id/prompt"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Please enter your location:"
+        android:textAppearance="@style/TextAppearance.AppCompat.Large" />
+
     <EditText
         android:id="@+id/editLocation"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:ems="10"
-        android:hint="Info"
+        android:hint="Type Here"
         android:inputType="textPersonName" />
 
     <CheckBox
         android:id="@+id/checkBox"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:onClick="getCheck"
         android:text="Steps to Recycle" />
 
     <Button
