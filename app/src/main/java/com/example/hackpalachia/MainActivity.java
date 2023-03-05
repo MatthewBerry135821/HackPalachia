@@ -290,7 +290,7 @@ public class MainActivity extends AppCompatActivity {
                         }
                     }
                     Log.v("EXAMPLE", "smallest index"+ smallestIndex);
-                    arrayList.add(centers.get(smallestIndex).getCity() + " " + 2 * (sqrt(smallestDistance)) * 6371 + " K.M");
+                    arrayList.add(centers.get(smallestIndex).getCity() + " " + 2 * (sqrt(smallestDistance)) * 54.6 + " MI");
                     centers.remove(smallestIndex);
                     countDisplayed += 1;
 
