@@ -18,8 +18,10 @@ import android.os.SystemClock;
 import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.RadioButton;
 import android.widget.TextView;
 
 import io.realm.OrderedRealmCollectionChangeListener;
@@ -60,10 +62,13 @@ public class MainActivity extends AppCompatActivity {
     ArrayList<String> arrayList;
     App app;
 
+    CheckBox checkBox;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
 
         Realm.init(this); // context, usually an Activity or Application
 
@@ -140,8 +145,17 @@ public class MainActivity extends AppCompatActivity {
 
     public void onBtnClick (View view){
         EditText editText = findViewById(R.id.editLocation);
-        editText.getText().toString();
+        String search = editText.getText().toString();
+        checkBox = findViewById(R.id.checkBox);
+        if(checkBox.isChecked()) {
+
+        }
+        else{
+
+        }
     }
+
+
     private void updateView() {
 
         ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(this,android.R.layout.simple_list_item_1,arrayList);
