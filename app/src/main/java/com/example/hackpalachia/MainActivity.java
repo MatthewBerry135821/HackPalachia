@@ -115,15 +115,14 @@ public class MainActivity extends AppCompatActivity {
 
 
         User user = app.currentUser();
-        mongoClient =
-                user.getMongoClient("mongodb-atlas");
+        mongoClient = user.getMongoClient("mongodb-atlas");
         mongoDatabase = mongoClient.getDatabase("LocationCoordinate");
 // registry to handle POJOs (Plain Old Java Objects)
-        CodecRegistry pojoCodecRegistry = fromRegistries(AppConfiguration.DEFAULT_BSON_CODEC_REGISTRY,
-                fromProviders(PojoCodecProvider.builder().automatic(true).build()));
-        ewasteMongoCollection = mongoDatabase.getCollection("Ewaste", Ewaste.class).withCodecRegistry(pojoCodecRegistry);
+        CodecRegistry pojoCodecRegistry = fromRegistries(AppConfiguration.DEFAULT_BSON_CODEC_REGISTRY, fromProviders(PojoCodecProvider.builder().automatic(true).build()));
+
         locationCoordinatemongoCollection = mongoDatabase.getCollection("LocationCoordinate", LocationCoordinate.class).withCodecRegistry(pojoCodecRegistry);
 
+        ewasteMongoCollection = mongoDatabase.getCollection("Ewaste", Ewaste.class).withCodecRegistry(pojoCodecRegistry);
 
         listView = findViewById(R.id.listView);
         arrayList = new ArrayList<>();
@@ -148,10 +147,11 @@ public class MainActivity extends AppCompatActivity {
         String search = editText.getText().toString();
         checkBox = findViewById(R.id.checkBox);
         if(checkBox.isChecked()) {
-
+            //searchByLocation
         }
         else{
-
+            search("location", search);
+            searchByLocation(search);
         }
     }
 
@@ -168,22 +168,30 @@ public class MainActivity extends AppCompatActivity {
         searchByLocationAll("city" , string);
     }
     private void searchByLocationAll(String string1 ,String string){
-        //Document queryFilter  = new Document("location", string);
-        Document queryFilter  = new Document("city", string);
+        Document queryFilter  = new Document("location", string);
+        //Document queryFilter  = new Document(string1, string);
 
         locationCoordinatemongoCollection.findOne(queryFilter).getAsync(task -> {
             if (task.isSuccess()) {
-                /*MongoCursor<Ewaste> results = task.get();
-
-                Log.v("EXAMPLE", "successfully found all plants for Store 42:");
-                while (results.hasNext()) {
-                    Ewaste result = results.next();
-                    Log.v("EXAMPLE", result.toString());
-                    arrayList.add(result.getLocation());
-                }
-                 */
                 LocationCoordinate result = task.get();
-                showCentersByDistance(result.getLat(), result.getLng());
+                //Log.v("EXAMPLE", "successfully found a document: " + queryFilter);
+                //Log.v("EXAMPLE", "successfully found a document: " + result);
+                //Log.v("EXAMPLE", "successfully found a document: " + string);
+                if(result != null) {
+                    showCentersByDistance(result.getLat(), result.getLng());
+                    Log.v("EXAMPLE", "successfully found a document: " + result);
+                }else {
+                    if(string1 == "city"){
+                        searchByLocationAll("state_id" , string);
+                    }else if(string1 == "state_id"){
+                        searchByLocationAll("state_name" , string);
+                    }else if(string1 == "state_name"){
+                        searchByLocationAll("county_name" , string);
+                    }else if(string1 == "county_name"){
+                        //searchByLocationAll("zips" , string);//contains multipole zips figure out later
+                    }
+                }
+
             } else {
                 if(string1 == "city"){
                     searchByLocationAll("state_id" , string);
