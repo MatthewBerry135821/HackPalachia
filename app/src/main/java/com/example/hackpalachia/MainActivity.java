@@ -150,8 +150,14 @@ public class MainActivity extends AppCompatActivity {
         listView.setAdapter(arrayAdapter);
     }
     private void searchByType(String string){
+        search("type", string);
+    }
+    private void searchByLocation(String string){
+        search("location", string);
+    }
+    private void search(String string, String string2){
 
-        Document queryFilter  = new Document("type", string);
+        Document queryFilter  = new Document(string, string2);
 
         RealmResultTask<MongoCursor<Ewaste>> findTask = mongoCollection.find(queryFilter).iterator();
         findTask.getAsync(task -> {
@@ -170,7 +176,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
-
 
     private void addChangeListenerToRealm(Realm realm) {
         // all tasks in the realm
