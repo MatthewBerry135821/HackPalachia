@@ -24,6 +24,7 @@ import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import io.realm.OrderedRealmCollectionChangeListener;
 
@@ -60,7 +61,6 @@ public class MainActivity extends AppCompatActivity {
     MongoClient mongoClient;
     ArrayList<String> arrayList;
     App app;
-
     CheckBox checkBox;
 
     @Override
@@ -173,7 +173,16 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-
+    public void getCheck(View view){
+        TextView textView = findViewById(R.id.prompt);
+        checkBox = findViewById(R.id.checkBox);
+        if (checkBox.isChecked()) {
+            textView.setText("Please enter what you want to recycle:");
+        }
+        else{
+            textView.setText("Please enter your location:");
+        }
+    }
     private void updateView() {
 
         ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(this,android.R.layout.simple_list_item_1,arrayList);
@@ -300,6 +309,7 @@ public class MainActivity extends AppCompatActivity {
 
         RealmResultTask<MongoCursor<Combined>> findTask = mongoCollection.find(queryFilter).iterator();
         findTask.getAsync(task -> {
+
             if (task.isSuccess()) {
                 MongoCursor<Combined> results = task.get();
 
