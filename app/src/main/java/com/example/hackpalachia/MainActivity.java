@@ -16,8 +16,11 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.SystemClock;
 import android.util.Log;
+import android.view.View;
 import android.widget.ArrayAdapter;
+import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import io.realm.OrderedRealmCollectionChangeListener;
 
@@ -105,10 +108,6 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-
-
-
-
         User user = app.currentUser();
         mongoClient =
                 user.getMongoClient("mongodb-atlas");
@@ -118,12 +117,6 @@ public class MainActivity extends AppCompatActivity {
         CodecRegistry pojoCodecRegistry = fromRegistries(AppConfiguration.DEFAULT_BSON_CODEC_REGISTRY,
                 fromProviders(PojoCodecProvider.builder().automatic(true).build()));
         mongoCollection = mongoDatabase.getCollection("Ewaste", Ewaste.class).withCodecRegistry(pojoCodecRegistry);
-
-
-
-
-
-
 
 
 
@@ -143,6 +136,11 @@ public class MainActivity extends AppCompatActivity {
 
         searchByType("Batteries");
 
+    }
+
+    public void onBtnClick (View view){
+        EditText editText = findViewById(R.id.editLocation);
+        editText.getText().toString();
     }
     private void updateView() {
 
