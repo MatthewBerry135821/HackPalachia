@@ -153,7 +153,24 @@ public class MainActivity extends AppCompatActivity {
         search("type", string);
     }
     private void searchByLocation(String string){
-        search("location", string);
+        Document queryFilter  = new Document("location", string);
+
+        RealmResultTask<MongoCursor<Ewaste>> findTask = mongoCollection.find(queryFilter).iterator();
+        findTask.getAsync(task -> {
+            if (task.isSuccess()) {
+                MongoCursor<Ewaste> results = task.get();
+
+                Log.v("EXAMPLE", "successfully found all plants for Store 42:");
+                while (results.hasNext()) {
+                    Ewaste result = results.next();
+                    Log.v("EXAMPLE", result.toString());
+                    arrayList.add(result.getLocation());
+                }
+                updateView();
+            } else {
+                Log.e("EXAMPLE", "failed to find documents with: ", task.getError());
+            }
+        });
     }
     private void search(String string, String string2){
 
