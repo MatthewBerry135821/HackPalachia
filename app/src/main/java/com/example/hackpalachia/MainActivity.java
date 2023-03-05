@@ -4,6 +4,7 @@ import static org.bson.codecs.configuration.CodecRegistries.fromProviders;
 import static org.bson.codecs.configuration.CodecRegistries.fromRegistries;
 
 import static java.lang.Float.parseFloat;
+import static java.lang.Math.asin;
 import static java.lang.Math.sqrt;
 
 import io.realm.OrderedCollectionChangeSet;
@@ -23,8 +24,6 @@ import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ListView;
-import android.widget.RadioButton;
-import android.widget.TextView;
 
 import io.realm.OrderedRealmCollectionChangeListener;
 
@@ -56,8 +55,7 @@ import io.realm.mongodb.mongo.MongoCollection;
 public class MainActivity extends AppCompatActivity {
     ListView listView;
     Realm uiThreadRealm;
-    MongoCollection<Ewaste> ewasteMongoCollection;
-    MongoCollection<LocationCoordinate> locationCoordinatemongoCollection;
+    MongoCollection<Combined> mongoCollection;
     MongoDatabase mongoDatabase;
     MongoClient mongoClient;
     ArrayList<String> arrayList;
@@ -116,13 +114,13 @@ public class MainActivity extends AppCompatActivity {
 
         User user = app.currentUser();
         mongoClient = user.getMongoClient("mongodb-atlas");
-        mongoDatabase = mongoClient.getDatabase("LocationCoordinate");
+        mongoDatabase = mongoClient.getDatabase("Combined");
 // registry to handle POJOs (Plain Old Java Objects)
         CodecRegistry pojoCodecRegistry = fromRegistries(AppConfiguration.DEFAULT_BSON_CODEC_REGISTRY, fromProviders(PojoCodecProvider.builder().automatic(true).build()));
 
-        locationCoordinatemongoCollection = mongoDatabase.getCollection("LocationCoordinate", LocationCoordinate.class).withCodecRegistry(pojoCodecRegistry);
+        mongoCollection = mongoDatabase.getCollection("Combined", Combined.class).withCodecRegistry(pojoCodecRegistry);
 
-        ewasteMongoCollection = mongoDatabase.getCollection("Ewaste", Ewaste.class).withCodecRegistry(pojoCodecRegistry);
+        //mongoCollection = mongoDatabase.getCollection("Ewaste", Ewaste.class).withCodecRegistry(pojoCodecRegistry);
 
         listView = findViewById(R.id.listView);
         arrayList = new ArrayList<>();
@@ -147,10 +145,30 @@ public class MainActivity extends AppCompatActivity {
         String search = editText.getText().toString();
         checkBox = findViewById(R.id.checkBox);
         if(checkBox.isChecked()) {
-            //searchByLocation
+            arrayList.clear();
+            Document queryFilter  = new Document("type", "3");
+
+            RealmResultTask<MongoCursor<Combined>> findTask = mongoCollection.find(queryFilter).iterator();
+            findTask.getAsync(task -> {
+                if (task.isSuccess()) {
+                    Vector<Combined> centers = new Vector<Combined>(0);
+                    MongoCursor<Combined> results = task.get();
+
+                    while (results.hasNext()) {
+                        Combined result = results.next();
+                        if (result != null) {
+                            arrayList.add(result.getCity());
+                        }
+                    }
+                    updateView();
+                } else {
+                    Log.e("EXAMPLE", "failed to find documents with: ", task.getError());
+                }
+            });
         }
         else{
-            search("location", search);
+            //search("location", search);
+            //searchL("state_id", search);
             searchByLocation(search);
         }
     }
@@ -165,41 +183,49 @@ public class MainActivity extends AppCompatActivity {
         search("type", string);
     }
     private void searchByLocation(String string){
+        arrayList.clear();
         searchByLocationAll("city" , string);
     }
     private void searchByLocationAll(String string1 ,String string){
-        Document queryFilter  = new Document("location", string);
-        //Document queryFilter  = new Document(string1, string);
+        //Document queryFilter  = new Document("location", string);
+        Document queryFilter  = new Document(string1, string);
+        queryFilter.append("type", "1");
 
-        locationCoordinatemongoCollection.findOne(queryFilter).getAsync(task -> {
+        mongoCollection.findOne(queryFilter).getAsync(task -> {
             if (task.isSuccess()) {
-                LocationCoordinate result = task.get();
-                //Log.v("EXAMPLE", "successfully found a document: " + queryFilter);
-                //Log.v("EXAMPLE", "successfully found a document: " + result);
-                //Log.v("EXAMPLE", "successfully found a document: " + string);
+                Combined result = task.get();
+                Log.v("EXAMPLE", "successfully found a document: " + result);
                 if(result != null) {
                     showCentersByDistance(result.getLat(), result.getLng());
-                    Log.v("EXAMPLE", "successfully found a document: " + result);
                 }else {
+
                     if(string1 == "city"){
+                        //Log.v("EXAMPLE", "failed - " + string1);
                         searchByLocationAll("state_id" , string);
                     }else if(string1 == "state_id"){
+                        //Log.v("EXAMPLE", "failed - " + string1);
                         searchByLocationAll("state_name" , string);
                     }else if(string1 == "state_name"){
+                        //Log.v("EXAMPLE", "failed - " + string1);
                         searchByLocationAll("county_name" , string);
                     }else if(string1 == "county_name"){
+                        //Log.v("EXAMPLE", "failed - " + string1);
                         //searchByLocationAll("zips" , string);//contains multipole zips figure out later
                     }
                 }
 
             } else {
                 if(string1 == "city"){
+                    //Log.v("EXAMPLE", "failed2 - " + string1);
                     searchByLocationAll("state_id" , string);
                 }else if(string1 == "state_id"){
+                    //Log.v("EXAMPLE", "failed2 - " + string1);
                     searchByLocationAll("state_name" , string);
                 }else if(string1 == "state_name"){
+                    //Log.v("EXAMPLE", "failed22 - " + string1);
                     searchByLocationAll("county_name" , string);
                 }else if(string1 == "county_name"){
+                    //Log.v("EXAMPLE", "failed2 - " + string1);
                     //searchByLocationAll("zips" , string);//contains multipole zips figure out later
                 }
                 Log.e("EXAMPLE", "failed to find documents with: ", task.getError());
@@ -209,42 +235,56 @@ public class MainActivity extends AppCompatActivity {
     private void showCentersByDistance(String lat, String lng) {
         float latF = parseFloat(lat);
         float lngF = parseFloat(lng);
-        Document queryFilter  = new Document();
+        Document queryFilter  = new Document("type", "2");
 
-        RealmResultTask<MongoCursor<Ewaste>> findTask = ewasteMongoCollection.find().iterator();
+        RealmResultTask<MongoCursor<Combined>> findTask = mongoCollection.find(queryFilter).iterator();
         findTask.getAsync(task -> {
+            Log.v("EXAMPLE", "******3");
             if (task.isSuccess()) {
-                Vector<Ewaste> centers = new Vector<Ewaste>(0);
+                Vector<Combined> centers = new Vector<Combined>(0);
                 //Vector<int> centers = new Vector<Ewaste>(0);
-                MongoCursor<Ewaste> results = task.get();
+                MongoCursor<Combined> results = task.get();
 
                 Log.v("EXAMPLE", "successfully found all plants for Store 42:");
                 while (results.hasNext()) {
-                    Ewaste result = results.next();
-                    centers.addElement(result);
+                    Combined result = results.next();
+                    if(result != null) {
+                        //centers.addElement(result);
+                        centers.add(result);
+                    }
                     //Log.v("EXAMPLE", result.toString());
                     //arrayList.add(result.getLocation());
                 }
-                int numDisplay = 5;
+                int numDisplay = 15;
                 int countDisplayed = 0;
-                for(int i=0; i < centers.size() && countDisplayed < numDisplay;++i) {
-                    float cLatF = parseFloat(centers.get(i).getLatitude());
-                    float cLngF = parseFloat(centers.get(i).getLongitude());
-                    double distance =  sqrt((latF - cLatF)*(latF - cLatF) + (lngF - cLngF)*(lngF - cLngF));
-                    int smallest = 1;
+                Log.v("EXAMPLE", "successfully found all plants for Store 42:");
+                for(int k=0; k< numDisplay; ++k) {
+                    float LatF = parseFloat(centers.get(0).getLat());
+                    float LngF = parseFloat(centers.get(0).getLng());
+                    int smallestIndex = 0;
+                    double smallestDistance = (latF - LatF) * (latF - LatF) + (lngF - LngF) * (lngF - LngF);
+                    Log.v("EXAMPLE", "center size"+ centers.size());
+                    for (int i = 0; i < centers.size(); ++i) {
+                        if(centers.get(i).getLat() != null && centers.get(i).getLng() != null) {
+                            float cLatF = parseFloat(centers.get(i).getLat());
+                            float cLngF = parseFloat(centers.get(i).getLng());
+                            //float cLatF = 2;
+                            //float cLngF = 2;
+                            double distance = (latF - cLatF) * (latF - cLatF) + (lngF - cLngF) * (lngF - cLngF);
 
-                    for(int j=i; j < centers.size();++j) {
-                        float cLatF2 = parseFloat(centers.get(i).getLatitude());
-                        float cLngF2 = parseFloat(centers.get(i).getLongitude());
-                        double distance2 =  sqrt((latF - cLatF)*(latF - cLatF) + (lngF - cLngF)*(lngF - cLngF));
-                        if(distance2 < distance) {
-                            smallest = 0;
+                            //Log.v("EXAMPLE", "index"+ smallestIndex);
+                            //Log.v("EXAMPLE", "dist"+ distance);
+                            if (distance < smallestDistance) {
+                                smallestDistance = distance;
+                                smallestIndex = i;
+                            }
                         }
                     }
-                    if(smallest == 1) {
-                        //arrayList.add(centers.get(i).getLandfillName() + distance.toString());
-                        countDisplayed += 1;
-                    }
+                    Log.v("EXAMPLE", "smallest index"+ smallestIndex);
+                    arrayList.add(centers.get(smallestIndex).getCity() + " " + 2 * (sqrt(smallestDistance)) * 6371 + " K.M");
+                    centers.remove(smallestIndex);
+                    countDisplayed += 1;
+
                 }
                 updateView();
             } else {
@@ -254,20 +294,42 @@ public class MainActivity extends AppCompatActivity {
     }
       /*  updateView();
     }*/
+    private void searchL(String string, String string2){
+
+        Document queryFilter  = new Document(string, string2);
+
+        RealmResultTask<MongoCursor<Combined>> findTask = mongoCollection.find(queryFilter).iterator();
+        findTask.getAsync(task -> {
+            if (task.isSuccess()) {
+                MongoCursor<Combined> results = task.get();
+
+                //Log.v("EXAMPLE", "searchL:" + task.get());
+                while (results.hasNext()) {
+                    Combined result = results.next();
+                    Log.v("EXAMPLE", result.toString());
+                    arrayList.add(result.getCountyName());
+                }
+                updateView();
+            } else {
+                Log.e("EXAMPLE", "failed to find documents with: ", task.getError());
+            }
+        });
+    }
+
     private void search(String string, String string2){
 
         Document queryFilter  = new Document(string, string2);
 
-        RealmResultTask<MongoCursor<Ewaste>> findTask = ewasteMongoCollection.find(queryFilter).iterator();
+        RealmResultTask<MongoCursor<Combined>> findTask = mongoCollection.find(queryFilter).iterator();
         findTask.getAsync(task -> {
             if (task.isSuccess()) {
-                MongoCursor<Ewaste> results = task.get();
+                MongoCursor<Combined> results = task.get();
 
                 Log.v("EXAMPLE", "successfully found all plants for Store 42:");
                 while (results.hasNext()) {
-                    Ewaste result = results.next();
+                    Combined result = results.next();
                     Log.v("EXAMPLE", result.toString());
-                    arrayList.add(result.getLandfillName());
+                    arrayList.add(result.getCity());
                 }
                 updateView();
             } else {
