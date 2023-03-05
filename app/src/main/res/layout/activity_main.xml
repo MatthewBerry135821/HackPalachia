@@ -13,8 +13,7 @@
         android:layout_height="wrap_content"
         android:ems="10"
         android:hint="Info"
-        android:inputType="textPersonName"
-        android:onClick="clearLocation" />
+        android:inputType="textPersonName" />
 
     <CheckBox
         android:id="@+id/checkBox"
